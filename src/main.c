@@ -10,8 +10,8 @@
 
 #define WIDTH 1920
 #define HEIGHT 1080
-// Pixels per 50 ms
-#define SPEED 5
+// Pixels per 20 ms
+#define SPEED 2
 // In secs
 #define COOLDOWN 5
 #define DIAG_THRESHOLD 5
@@ -28,6 +28,8 @@ void move_mouse(int fd, int dx, int dy, int *curr_x, int *curr_y) {
 
 int main(void) {
 	int uinput_fd;
+	// For some obscur reason, removing the WHEEL from this list stops the
+	// cursor from moving, even though in theory it's not necessary.
 	int rel_axes[] = {REL_X, REL_Y, REL_WHEEL};
 	struct uinput_user_dev user_dev;
 	int i;
@@ -68,7 +70,7 @@ int main(void) {
 
 	while (1) {
 		if (is_afk) {
-			usleep(50 * 1000);
+			usleep(20 * 1000);
 			move_mouse(uinput_fd, dx, dy, &curr_x, &curr_y);
 
 			if (curr_x <= COLLISION_THREASHOLD)
@@ -89,26 +91,28 @@ int main(void) {
 				curr_x = (int)(rand() % (WIDTH / 2) + WIDTH / 4);
 				curr_y = (int)(rand() % (HEIGHT / 2) + HEIGHT / 4);
 
+				dx = (int)((rand() % 2) * 2 - 1) * SPEED;
+				dy = (int)((rand() % 2) * 2 - 1) * SPEED;
+
 				// align cursor to random width and height
 				for (int i = 0; i < WIDTH / 4; i++) {
-					suinput_emit(uinput_fd, EV_REL, REL_X, -5);
+					suinput_emit(uinput_fd, EV_REL, REL_X, 5);
 					suinput_syn(uinput_fd);
 					usleep(1 * 1000);
 				}
 				for (int i = 0; i < HEIGHT / 4; i++) {
-					suinput_emit(uinput_fd, EV_REL, REL_Y, -5);
+					suinput_emit(uinput_fd, EV_REL, REL_Y, 5);
 					suinput_syn(uinput_fd);
 					usleep(1 * 1000);
 				}
-				usleep(50 * 1000);
 
-				for (int i = 0; i < curr_x; i++) {
-					suinput_emit(uinput_fd, EV_REL, REL_X, 1);
+				for (int i = 0; i < WIDTH - curr_x; i += 2) {
+					suinput_emit(uinput_fd, EV_REL, REL_X, -2);
 					suinput_syn(uinput_fd);
 					usleep(5 * 1000);
 				}
-				for (int i = 0; i < curr_y; i++) {
-					suinput_emit(uinput_fd, EV_REL, REL_Y, 1);
+				for (int i = 0; i < HEIGHT - curr_y; i += 2) {
+					suinput_emit(uinput_fd, EV_REL, REL_Y, -2);
 					suinput_syn(uinput_fd);
 					usleep(5 * 1000);
 				}
