@@ -1,0 +1,6 @@
+gcc
+
+-Iinc
+-I/usr/include/
+
+-Wall
