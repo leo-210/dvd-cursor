@@ -77,7 +77,7 @@ int main(void) {
 				dx = SPEED;
 			else if (curr_x >= WIDTH - COLLISION_THREASHOLD)
 				dx = -SPEED;
-			else if (curr_y <= COLLISION_THREASHOLD)
+			if (curr_y <= COLLISION_THREASHOLD)
 				dy = SPEED;
 			else if (curr_y >= HEIGHT - COLLISION_THREASHOLD)
 				dy = -SPEED;
