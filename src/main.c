@@ -88,8 +88,13 @@ int main(void) {
 				is_afk = true;
 				printf("user is now afk\n");
 
-				curr_x = (int)(rand() % (WIDTH / 2) + WIDTH / 4);
-				curr_y = (int)(rand() % (HEIGHT / 2) + HEIGHT / 4);
+				if (rand() % 2 == 0) {
+					curr_x = (int)(rand() % (WIDTH / 2) + WIDTH / 4);
+					curr_y = HEIGHT;
+				} else {
+					curr_x = WIDTH;
+					curr_y = (int)(rand() % (HEIGHT / 2) + HEIGHT / 4);
+				}
 
 				dx = (int)((rand() % 2) * 2 - 1) * SPEED;
 				dy = (int)((rand() % 2) * 2 - 1) * SPEED;
@@ -116,7 +121,7 @@ int main(void) {
 					suinput_syn(uinput_fd);
 					usleep(5 * 1000);
 				}
-				usleep(50 * 1000);
+				usleep(20 * 1000);
 			}
 		}
 
