@@ -104,24 +104,60 @@ int main(void) {
 					suinput_emit(uinput_fd, EV_REL, REL_X, 5);
 					suinput_syn(uinput_fd);
 					usleep(1 * 1000);
+
+					if (read(events_fd, buf, sizeof(buf)) > 0) {
+						not_afk_since = clock();
+						if (is_afk) {
+							printf("user is back\n");
+						}
+						is_afk = false;
+					}
 				}
+
+				if (!is_afk)
+					continue;
 				for (int i = 0; i < HEIGHT / 4; i++) {
 					suinput_emit(uinput_fd, EV_REL, REL_Y, 5);
 					suinput_syn(uinput_fd);
 					usleep(1 * 1000);
+					if (read(events_fd, buf, sizeof(buf)) > 0) {
+						not_afk_since = clock();
+						if (is_afk) {
+							printf("user is back\n");
+						}
+						is_afk = false;
+					}
 				}
 
+				if (!is_afk)
+					continue;
 				for (int i = 0; i < WIDTH - curr_x; i += 2) {
 					suinput_emit(uinput_fd, EV_REL, REL_X, -2);
 					suinput_syn(uinput_fd);
 					usleep(5 * 1000);
+					if (read(events_fd, buf, sizeof(buf)) > 0) {
+						not_afk_since = clock();
+						if (is_afk) {
+							printf("user is back\n");
+						}
+						is_afk = false;
+					}
 				}
+
+				if (!is_afk)
+					continue;
 				for (int i = 0; i < HEIGHT - curr_y; i += 2) {
 					suinput_emit(uinput_fd, EV_REL, REL_Y, -2);
 					suinput_syn(uinput_fd);
 					usleep(5 * 1000);
+					if (read(events_fd, buf, sizeof(buf)) > 0) {
+						not_afk_since = clock();
+						if (is_afk) {
+							printf("user is back\n");
+						}
+						is_afk = false;
+					}
 				}
-				usleep(20 * 1000);
 			}
 		}
 
