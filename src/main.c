@@ -6,7 +6,7 @@
 #include <time.h>
 #include <unistd.h>
 
-#include <suinput.h>
+#include <linux/uinput.h>
 
 #define WIDTH 1920
 #define HEIGHT 1080
@@ -17,38 +17,62 @@
 #define DIAG_THRESHOLD 5
 #define COLLISION_THREASHOLD 2
 
+void emit(int fd, int type, int code, int val) {
+	struct input_event ie;
+
+	ie.type = type;
+	ie.code = code;
+	ie.value = val;
+	/* timestamp values below are ignored */
+	ie.time.tv_sec = 0;
+	ie.time.tv_usec = 0;
+
+	write(fd, &ie, sizeof(ie));
+}
+
 void move_mouse(int fd, int dx, int dy, int *curr_x, int *curr_y) {
-	suinput_emit(fd, EV_REL, REL_X, dx);
-	suinput_emit(fd, EV_REL, REL_Y, dy);
-	suinput_syn(fd);
+	emit(fd, EV_REL, REL_X, dx);
+	emit(fd, EV_REL, REL_Y, dy);
+	emit(fd, EV_SYN, SYN_REPORT, 0);
 
 	*curr_x += dx;
 	*curr_y += dy;
 }
 
 int main(void) {
-	int uinput_fd;
 	// For some obscur reason, removing the WHEEL from this list stops the
 	// cursor from moving, even though in theory it's not necessary.
 	int rel_axes[] = {REL_X, REL_Y, REL_WHEEL};
 	struct uinput_user_dev user_dev;
+	struct uinput_setup usetup;
+
 	int i;
 
 	memset(&user_dev, 0, sizeof(struct uinput_user_dev));
 	strcpy(user_dev.name, "dvd-cursor-mouse");
 
-	uinput_fd = suinput_open();
+	int uinput_fd = open("/dev/uinput", O_WRONLY | O_NONBLOCK);
 
 	if (uinput_fd == -1) {
 		printf("error: cannot create virtual device\n");
 		return EXIT_FAILURE;
 	}
 
+	ioctl(uinput_fd, UI_SET_EVBIT, EV_REL);
+
 	for (i = 0; i < 3; ++i) {
-		suinput_enable_event(uinput_fd, EV_REL, rel_axes[i]);
+		ioctl(uinput_fd, UI_SET_RELBIT, rel_axes[i]);
 	}
 
-	suinput_create(uinput_fd, &user_dev);
+	memset(&usetup, 0, sizeof(usetup));
+	usetup.id.bustype = BUS_USB;
+	usetup.id.vendor = 0x1234;	/* sample vendor */
+	usetup.id.product = 0x5678; /* sample product */
+	strcpy(usetup.name, "dvd-cursor virtual mouse");
+
+	ioctl(uinput_fd, UI_DEV_SETUP, &usetup);
+	ioctl(uinput_fd, UI_DEV_CREATE);
+
 	sleep(1);
 
 	int events_fd = open("/dev/input/mice", O_RDONLY | O_NONBLOCK);
@@ -101,8 +125,8 @@ int main(void) {
 
 				// align cursor to random width and height
 				for (int i = 0; i < WIDTH / 4; i++) {
-					suinput_emit(uinput_fd, EV_REL, REL_X, 5);
-					suinput_syn(uinput_fd);
+					emit(uinput_fd, EV_REL, REL_X, 5);
+					emit(uinput_fd, EV_SYN, SYN_REPORT, 0);
 					usleep(1 * 1000);
 
 					if (read(events_fd, buf, sizeof(buf)) > 0) {
@@ -117,8 +141,8 @@ int main(void) {
 				if (!is_afk)
 					continue;
 				for (int i = 0; i < HEIGHT / 4; i++) {
-					suinput_emit(uinput_fd, EV_REL, REL_Y, 5);
-					suinput_syn(uinput_fd);
+					emit(uinput_fd, EV_REL, REL_Y, 5);
+					emit(uinput_fd, EV_SYN, SYN_REPORT, 0);
 					usleep(1 * 1000);
 					if (read(events_fd, buf, sizeof(buf)) > 0) {
 						not_afk_since = clock();
@@ -132,8 +156,8 @@ int main(void) {
 				if (!is_afk)
 					continue;
 				for (int i = 0; i < WIDTH - curr_x; i += 2) {
-					suinput_emit(uinput_fd, EV_REL, REL_X, -2);
-					suinput_syn(uinput_fd);
+					emit(uinput_fd, EV_REL, REL_X, -2);
+					emit(uinput_fd, EV_SYN, SYN_REPORT, 0);
 					usleep(5 * 1000);
 					if (read(events_fd, buf, sizeof(buf)) > 0) {
 						not_afk_since = clock();
@@ -147,8 +171,8 @@ int main(void) {
 				if (!is_afk)
 					continue;
 				for (int i = 0; i < HEIGHT - curr_y; i += 2) {
-					suinput_emit(uinput_fd, EV_REL, REL_Y, -2);
-					suinput_syn(uinput_fd);
+					emit(uinput_fd, EV_REL, REL_Y, -2);
+					emit(uinput_fd, EV_SYN, SYN_REPORT, 0);
 					usleep(5 * 1000);
 					if (read(events_fd, buf, sizeof(buf)) > 0) {
 						not_afk_since = clock();
@@ -170,7 +194,9 @@ int main(void) {
 		}
 	}
 
-	suinput_destroy(uinput_fd);
+	ioctl(uinput_fd, UI_DEV_DESTROY);
+	close(uinput_fd);
+
 	close(events_fd);
 
 	return EXIT_SUCCESS;
