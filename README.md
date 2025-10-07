@@ -18,14 +18,14 @@ The binary will be located at `./bin/dvd-cursor`
 
 To run it, you need to use `sudo`, to allow for moving the mouse and detecting its movements.
 
-Alternatively, to avoid giving unecessary permissions, you can run it as a user in the `input` and `uinput` groups.
+Alternatively, to avoid giving unnecessary permissions, you can run it as a user in the `input` and `uinput` groups.
 
 
 ## Configuration
 
 You can configure the program with the `src/config.h` file. You need to recompile the program to apply the changes.
 
-### Default config file :
+### Default configuration file :
 ```c
 // src/config.h
 

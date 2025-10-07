@@ -1,20 +1,16 @@
 CFLAGS = -Wall
 INC = -I/usr/include
 
-all: bin/dvdcursor
+all: dvd-cursor
 
-bin/dvdcursor: build/main.o dirs
-	gcc $(CFLAGS) build/main.o -o bin/dvdcursor
+dvd-cursor: main.o
+	gcc $(CFLAGS) main.o -o dvd-cursor
 
-build/main.o: src/main.c src/config.h dirs
-	gcc $(CFLAGS) -c ./src/main.c -o build/main.o
-
-dirs:
-	@mkdir build
-	@mkdir bin
+main.o: src/main.c src/config.h dirs
+	gcc $(CFLAGS) -c ./src/main.c -o main.o
 
 clean:
-	rm -rf build/*.o
-	rm -rf bin/dvdcursor
+	rm -rf *.o
+	rm -rf dvd-cursor
 
 .PHONY: dirs clean all
