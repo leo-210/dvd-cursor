@@ -8,12 +8,8 @@
 
 #include <linux/uinput.h>
 
-#define WIDTH 1920
-#define HEIGHT 1080
-// Pixels per 20 ms
-#define SPEED 2
-// In secs
-#define COOLDOWN 5
+#include "config.h"
+
 #define DIAG_THRESHOLD 5
 #define COLLISION_THREASHOLD 2
 
@@ -110,7 +106,6 @@ int main(void) {
 				(float)(clock() - not_afk_since) / CLOCKS_PER_SEC;
 			if (afk_for_secs > 5) {
 				is_afk = true;
-				printf("user is now afk\n");
 
 				if (rand() % 2 == 0) {
 					curr_x = (int)(rand() % (WIDTH / 2) + WIDTH / 4);
@@ -131,9 +126,6 @@ int main(void) {
 
 					if (read(events_fd, buf, sizeof(buf)) > 0) {
 						not_afk_since = clock();
-						if (is_afk) {
-							printf("user is back\n");
-						}
 						is_afk = false;
 					}
 				}
@@ -146,9 +138,6 @@ int main(void) {
 					usleep(1 * 1000);
 					if (read(events_fd, buf, sizeof(buf)) > 0) {
 						not_afk_since = clock();
-						if (is_afk) {
-							printf("user is back\n");
-						}
 						is_afk = false;
 					}
 				}
@@ -161,9 +150,6 @@ int main(void) {
 					usleep(5 * 1000);
 					if (read(events_fd, buf, sizeof(buf)) > 0) {
 						not_afk_since = clock();
-						if (is_afk) {
-							printf("user is back\n");
-						}
 						is_afk = false;
 					}
 				}
@@ -176,9 +162,6 @@ int main(void) {
 					usleep(5 * 1000);
 					if (read(events_fd, buf, sizeof(buf)) > 0) {
 						not_afk_since = clock();
-						if (is_afk) {
-							printf("user is back\n");
-						}
 						is_afk = false;
 					}
 				}
